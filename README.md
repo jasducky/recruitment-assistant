@@ -90,7 +90,11 @@ All agents have memory enabled and delegation disabled. Iteration limits are set
 git clone <repo-url>
 cd recruitment-assistant
 
-# Install dependencies (once build phase is complete)
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
 
 # Configure API keys
@@ -100,13 +104,15 @@ cp .env.example .env
 
 ### Usage
 
-> **Coming soon** — the Build phase has not yet started. Once implemented, usage will be:
-
 ```bash
-python main.py
+python src/main.py
+# or use the startup script:
+./run.sh
 ```
 
-The system will prompt for job title, required skills, experience level, and location preference, then run the full pipeline and output a recruitment report to the terminal and `output/report.md`.
+The system prompts for job title, required skills, experience level, and location preference, then runs the full pipeline and outputs a recruitment report to the terminal and `output/report.md`.
+
+For detailed operational instructions, see the [Runbook](project-context/3.deliver/runbook.md).
 
 ---
 
@@ -121,22 +127,30 @@ recruitment-assistant/
 │   ├── prompts/         # Phase-specific prompts
 │   ├── rules/           # Architecture, workflow, and adapter rules
 │   └── templates/       # MRD, PRD, and SAD generation templates
+├── config/
+│   ├── agents.yaml      # Agent role, goal, backstory, LLM config
+│   └── tasks.yaml       # Task descriptions, expected outputs, context wiring
+├── logs/                 # Application logs (gitignored except .gitkeep)
+├── output/               # Generated reports (gitignored except .gitkeep)
 ├── project-context/
 │   ├── 1.define/        # Market research, PRD, decisions log
-│   │   ├── mrd.md       # Market Research Document
-│   │   ├── prd.md       # Product Requirements Document
-│   │   └── decisions.md # Scope and design decisions
-│   ├── 2.build/         # Build artifacts (architecture, code docs)
-│   └── 3.deliver/       # QA logs, deploy configs, release notes
+│   ├── 2.build/         # Architecture plan, build notes
+│   └── 3.deliver/       # Deployment, monitoring, runbook, release notes
+├── src/
+│   ├── crew.py          # Crew definition (agents, tasks, orchestration)
+│   └── main.py          # CLI entry point
 ├── CHECKLIST.md          # Step-by-step execution guide
 ├── CLAUDE.md             # Claude Code project instructions
+├── run.sh               # Startup script with pre-flight checks
 └── README.md             # This file
 ```
 
-**Key artifacts to review:**
+**Key artefacts to review:**
 - [PRD](project-context/1.define/prd.md) — full requirements, agent definitions, success metrics
 - [MRD](project-context/1.define/mrd.md) — market research backing the requirements
 - [Decisions](project-context/1.define/decisions.md) — scope and design decision log
+- [Runbook](project-context/3.deliver/runbook.md) — operational guide for running and monitoring
+- [Release Notes](project-context/3.deliver/release-notes.md) — v1.0.0 features and known limitations
 
 ---
 
@@ -145,23 +159,28 @@ recruitment-assistant/
 | Phase | Status | Details |
 |-------|--------|---------|
 | **Define** | Complete | MRD, PRD, and decisions log authored. Requirements traced to market data. |
-| **Build** | Not started | Architecture document, agent implementation, CLI, and end-to-end wiring. |
-| **Deliver** | Not started | Testing, QA validation, and demo run. |
+| **Build** | Complete | Architecture plan, agent implementation, CLI entry point, end-to-end validation. |
+| **Deliver** | Complete | Deployment plan, monitoring, runbook, execution results, release notes. |
 
 ### What has been completed
 
+**Define phase:**
 - Market research (MRD) with sourced data points on recruitment pain points, AI adoption, and competitive gaps
 - Product requirements (PRD) with agent definitions, feature priorities (P0/P1/P2), evaluation criteria, and success metrics
 - Scope decisions documented (3-agent pipeline, sequential orchestration, no outreach, CLI-only)
-- Per-agent evaluation criteria defined (what "good output" looks like for each agent)
 
-### What is next
+**Build phase:**
+- System architecture document with agent YAML config, task definitions, and data flow
+- CrewAI project scaffolding with 3 agents (Researcher, Evaluator, Reporter)
+- Sequential crew wiring and CLI entry point
+- End-to-end validation run producing a 5-candidate recruitment report
 
-1. System architecture document (agent YAML config, task definitions, data flow)
-2. CrewAI project scaffolding and dependency setup
-3. Agent implementation (Researcher, Evaluator, Reporter)
-4. Sequential crew wiring and CLI entry point
-5. End-to-end testing with sample job requirement
+**Deliver phase:**
+- [Deployment plan](project-context/3.deliver/deployment-plan.md) with local setup and rollback procedures
+- [Monitoring plan](project-context/3.deliver/monitoring-plan.md) with Python logging and CrewAI tracing setup
+- [Operational runbook](project-context/3.deliver/runbook.md) covering installation, usage, and troubleshooting
+- [Execution results](project-context/3.deliver/execution-results.md) documenting the Build phase validation run
+- [Release notes](project-context/3.deliver/release-notes.md) for v1.0.0
 
 ---
 
@@ -180,4 +199,4 @@ Frontend Engineer and DevOps personas are not used for this project (CLI only, l
 
 ---
 
-*This is a learning exercise for the AAMAD methodology. It demonstrates the full artefact trail from market research to product requirements to (eventually) a working multi-agent system. The goal is to learn the process, not to build a production recruitment tool.*
+*This is a learning exercise for the AAMAD methodology. It demonstrates the full artefact trail from market research through product requirements to a working multi-agent system. The goal is to learn the process, not to build a production recruitment tool.*
