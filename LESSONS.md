@@ -28,11 +28,10 @@
 
 #### Deliver Phase
 
-<!-- TODO(human): Julia, write 3-5 bullet points about your Deliver phase insights below. Consider:
-- What surprised you about the operational side?
-- How does Deliver connect back to your PM experience?
-- What would you add or change about the Deliver phase approach?
--->
+- Writing the runbook forced me to think about the application from a user's perspective rather than a builder's — similar to writing release notes in a product team
+- Logging is more important for agentic apps than traditional software because you can't predict what the agents will do — you need the trail to understand what happened
+- The Deliver phase felt familiar from PM work: you don't ship a feature without documentation, monitoring, and a way for support to troubleshoot
+- Keeping deployment proportionate matters — Docker would have been over-engineering for a CLI learning exercise
 
 
 
