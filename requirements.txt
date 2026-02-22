@@ -1,0 +1,3 @@
+crewai[anthropic]==1.9.3
+crewai-tools==1.9.3
+python-dotenv>=1.0.0

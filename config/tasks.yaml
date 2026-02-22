@@ -1,0 +1,124 @@
+# Task Definitions — Recruitment Assistant
+# CrewAI YAML configuration for all 3 sequential tasks
+# Source: PRD Section 3 & 6b, SAD Section 2
+
+research_candidates:
+  description: >
+    Search the web to find candidate profiles matching these job requirements:
+
+    - Job Title: {job_title}
+    - Required Skills: {skills}
+    - Experience Level: {experience_level}
+    - Location Preference: {location}
+
+    Use web search to discover relevant professional profiles, portfolios, GitHub
+    accounts, blog posts, and public information. Look for candidates who genuinely
+    match the technical skills and experience level specified.
+
+    For each candidate found, provide:
+    - Full name
+    - Current role and company
+    - Key skills (relevant to the requirements)
+    - Location
+    - Source URL (where you found them)
+    - Sourcing note explaining why they match the requirements
+
+    Aim to find 5-10 candidates. Quality over quantity — each candidate should have
+    a clear connection to the job requirements.
+  expected_output: >
+    A structured list of 5-10 candidate profiles. Each profile must include:
+    name, current role, company, key skills, location, source URL, and a brief
+    sourcing note explaining why this candidate matches the requirements.
+  agent: researcher
+
+evaluate_candidates:
+  description: >
+    Evaluate each candidate from the research phase against the job requirements
+    using the following structured scoring rubric.
+
+    Job Requirements for context:
+    - Job Title: {job_title}
+    - Required Skills: {skills}
+    - Experience Level: {experience_level}
+    - Location Preference: {location}
+
+    SCORING RUBRIC (score each criterion 1-5):
+
+    1. Skills Match (1-5):
+       - 1 = No relevant skills found
+       - 2 = Few matching skills, significant gaps
+       - 3 = Some matching skills, moderate gaps
+       - 4 = Most required skills present, minor gaps
+       - 5 = All required skills demonstrated with evidence
+
+    2. Experience Relevance (1-5):
+       - 1 = No relevant experience
+       - 2 = Tangentially related experience only
+       - 3 = Some relevant experience but below target level
+       - 4 = Relevant experience at or near target level
+       - 5 = Strong, directly relevant experience exceeding requirements
+
+    3. Location Fit (1-5):
+       - 1 = Different country, no remote indication
+       - 2 = Same country but different region
+       - 3 = Nearby region or indicates remote availability
+       - 4 = Same city/region
+       - 5 = Exact location match or explicitly open to the location
+
+    For each candidate:
+    - Assign a score (1-5) for each criterion with written evidence/rationale
+    - Calculate total score (out of 15)
+    - Assign a tier:
+      * Highly Qualified: 12-15 points
+      * Qualified: 8-11 points
+      * Marginal: 5-7 points
+      * Not Suitable: below 5 points
+    - Rank candidates from highest to lowest total score
+  expected_output: >
+    A ranked list of all candidates with:
+    - Per-criterion scores (1-5) with written rationale for each score
+    - Total score out of 15
+    - Tier classification (Highly Qualified / Qualified / Marginal / Not Suitable)
+    - Candidates ordered from highest to lowest score
+  agent: evaluator
+  context:
+    - research_candidates
+
+generate_report:
+  description: >
+    Produce a professional recruitment report in markdown format based on the
+    evaluated and ranked candidates.
+
+    The report must follow this structure:
+
+    1. **Executive Summary**
+       - Role searched: {job_title}
+       - Total candidates found
+       - Number qualified (scored 8+/15)
+       - Top recommendation with brief rationale
+
+    2. **Candidate Rankings Table**
+       - Ranked table with columns: Rank, Name, Total Score, Tier, Key Strength
+
+    3. **Detailed Candidate Profiles**
+       For each candidate (in rank order):
+       - Name and current role
+       - Per-criterion scores with rationale
+       - Key strengths
+       - Key gaps or concerns
+       - Source URL
+
+    4. **Recommendations**
+       - Which candidates to pursue immediately
+       - Any caveats or suggestions for the recruiter
+
+    Write clearly and concisely. A recruiter should be able to read this report
+    and take action without re-doing any of the research.
+  expected_output: >
+    A complete markdown recruitment report with: executive summary, ranked
+    candidate table, detailed per-candidate profiles with scores and rationale,
+    and actionable recommendations. The report should be ready to share with
+    a hiring manager.
+  agent: reporter
+  context:
+    - evaluate_candidates

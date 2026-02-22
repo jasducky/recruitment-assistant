@@ -17,5 +17,9 @@ venv/
 .vscode/
 .idea/
 
+# Output (generated reports)
+output/*
+!output/.gitkeep
+
 # OS
 .DS_Store
