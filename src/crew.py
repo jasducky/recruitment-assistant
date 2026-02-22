@@ -7,12 +7,15 @@ assembles a sequential CrewAI crew: Researcher -> Evaluator -> Reporter.
 Source: SAD Sections 2-3, architecture-plan.md Phase 3
 """
 
+import logging
 import os
 from pathlib import Path
 
 import yaml
 from crewai import Agent, Crew, Process, Task
 from crewai_tools import ScrapeWebsiteTool, SerperDevTool
+
+logger = logging.getLogger("recruitment_assistant.crew")
 
 
 # Project root is one level up from src/
@@ -25,6 +28,7 @@ def _load_yaml(filename: str) -> dict:
     filepath = CONFIG_DIR / filename
     if not filepath.exists():
         raise FileNotFoundError(f"Configuration file not found: {filepath}")
+    logger.info("Loading configuration from %s", filepath)
     with open(filepath, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
@@ -51,6 +55,7 @@ def _create_agents(agents_config: dict) -> dict[str, Agent]:
     """
     agents = {}
     for name, config in agents_config.items():
+        logger.info("Creating agent: %s (role: %s)", name, config["role"])
         agents[name] = Agent(
             role=config["role"],
             goal=config["goal"],
@@ -62,6 +67,7 @@ def _create_agents(agents_config: dict) -> dict[str, Agent]:
             max_iter=config.get("max_iter", 5),
             verbose=config.get("verbose", True),
         )
+    logger.info("All %d agents created successfully", len(agents))
     return agents
 
 
@@ -84,6 +90,7 @@ def _create_tasks(
     task_list: list[Task] = []
 
     for name, config in tasks_config.items():
+        logger.info("Creating task: %s (agent: %s)", name, config["agent"])
         # Interpolate job requirement placeholders in description
         description = config["description"].format(**inputs)
         expected_output = config["expected_output"].format(**inputs)
@@ -113,6 +120,7 @@ def _create_tasks(
         tasks_by_name[name] = task
         task_list.append(task)
 
+    logger.info("All %d tasks created successfully", len(task_list))
     return task_list
 
 
@@ -130,6 +138,7 @@ def build_crew(inputs: dict[str, str]) -> Crew:
     Returns:
         A configured Crew ready to be kicked off.
     """
+    logger.info("Loading agent and task configuration")
     agents_config = _load_yaml("agents.yaml")
     tasks_config = _load_yaml("tasks.yaml")
 
@@ -142,6 +151,10 @@ def build_crew(inputs: dict[str, str]) -> Crew:
         process=Process.sequential,
         verbose=True,
         max_rpm=10,
+        # To enable CrewAI tracing (requires `crewai login` first):
+        # tracing=True,
     )
 
+    logger.info("Crew built successfully (%d agents, %d tasks, sequential process)",
+                len(agents), len(tasks))
     return crew

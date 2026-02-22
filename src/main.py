@@ -13,6 +13,7 @@ Usage:
 Source: SAD Section 4, architecture-plan.md Phase 3
 """
 
+import logging
 import os
 import sys
 from pathlib import Path
@@ -22,6 +23,38 @@ from dotenv import load_dotenv
 # Ensure the project root is on the Python path so we can import src.crew
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
+logger = logging.getLogger("recruitment_assistant")
+
+
+def _setup_logging() -> None:
+    """
+    Configure logging to output to both console and file.
+
+    - Console: INFO level, human-readable format
+    - File: INFO level, timestamped format to logs/app.log
+    """
+    logger.setLevel(logging.INFO)
+
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_fmt = logging.Formatter("[%(levelname)s] %(message)s")
+    console_handler.setFormatter(console_fmt)
+
+    # File handler — logs/app.log
+    log_dir = PROJECT_ROOT / "logs"
+    log_dir.mkdir(exist_ok=True)
+    file_handler = logging.FileHandler(log_dir / "app.log", encoding="utf-8")
+    file_handler.setLevel(logging.INFO)
+    file_fmt = logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(name)s — %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    file_handler.setFormatter(file_fmt)
+
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
 
 
 def _check_api_keys() -> None:
@@ -112,27 +145,46 @@ def _save_report(report: str) -> Path:
 def main() -> None:
     """Main entry point: load config, collect input, run crew, save output."""
 
+    # Set up logging first
+    _setup_logging()
+    logger.info("Recruitment Assistant starting up")
+
     # Load environment variables from .env
     env_path = PROJECT_ROOT / ".env"
     load_dotenv(env_path)
+    logger.info("Environment variables loaded from %s", env_path)
 
     # Opt out of CrewAI telemetry
     os.environ.setdefault("CREWAI_TELEMETRY_OPT_OUT", "true")
 
     # Validate API keys before doing anything else
     _check_api_keys()
+    logger.info("API keys validated successfully")
 
     # Collect job requirements from the user
     inputs = _collect_job_requirements()
+    logger.info(
+        "Job requirements collected: %s in %s (%s experience)",
+        inputs["job_title"],
+        inputs["location"],
+        inputs["experience_level"],
+    )
 
     # Build and run the crew
     from src.crew import build_crew
 
-    print("Building crew...")
-    crew = build_crew(inputs)
+    try:
+        print("Building crew...")
+        logger.info("Building crew...")
+        crew = build_crew(inputs)
 
-    print("Kicking off the recruitment pipeline...\n")
-    result = crew.kickoff()
+        print("Kicking off the recruitment pipeline...\n")
+        logger.info("Kicking off the recruitment pipeline")
+        result = crew.kickoff()
+        logger.info("Crew execution completed successfully")
+    except Exception:
+        logger.error("Crew execution failed", exc_info=True)
+        raise
 
     # Display the final report
     print("\n" + "=" * 60)
@@ -143,6 +195,8 @@ def main() -> None:
     # Save to file
     output_path = _save_report(result)
     print(f"\nReport saved to: {output_path}")
+    logger.info("Report saved to %s", output_path)
+    logger.info("Recruitment Assistant finished")
 
 
 if __name__ == "__main__":

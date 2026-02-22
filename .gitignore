@@ -21,5 +21,9 @@ venv/
 output/*
 !output/.gitkeep
 
+# Logs (generated at runtime)
+logs/*
+!logs/.gitkeep
+
 # OS
 .DS_Store
